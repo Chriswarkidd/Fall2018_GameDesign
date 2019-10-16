@@ -1,4 +1,4 @@
 # Fall2018_GameDesign
-
-
-#Madelyn White
+Christopher Brown
+Renae Rohde
+Madelyn White
