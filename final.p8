@@ -3,20 +3,24 @@ version 18
 __lua__
 lives = 0
 camerax = -128
-player = {}
-player.x = 8
-player.y = 0
-player.w = 3
-player.h = 6
-player.sx = 2
-player.sy = 0
-player.can_move = true
-player.grounded = false
-player.accel = 0
-player.maxaceel = 2.5
-player.speed = .80
-player.sprite = 1
+player = {
+	x = 8,
+	y = 0,
+	w = 3,
+	h = 6,
+	sx = 2,
+	sy = 0,
+	can_move = true,
+	grounded = false,
+	accel = 0,
+	maxaceel = 2.5,
+	speed = 0.70,
+	sprite = 1,
+	flip_sprite_x = false,
+	jump_hold = 0
+}
 bads = {}
+projectiles = {}
 flag_x = 0
 flag_max_y = 0
 level_end = false
@@ -130,17 +134,25 @@ function reset()
         g.show = true
         g.speed = .5
     end
+	projectiles = {}
 end
 
 function gravity()
-    local move = player.accel
+    local dy = player.accel
     
-    if not check_move(player.x + player.sx, player.y + player.sy + move, player.w, player.h) then
-        player.y += move
+	local x = player.x + player.sx
+	local y = player.y + player.sy + dy
+    if not check_move(x, y, player.w, player.h) then
+		-- not inside a block
+        player.y += dy
         player.grounded = false
     else
-        player.grounded = true
-        player.accel = 0
+		-- check if they are not inside the roof, thus they are inside the ground
+		if not (check_flag(x, y) or check_flag(x + player.w, y)) then
+			player.grounded = true
+		end
+		player.accel = 0
+		player.jump_hold = 0
     end
     
     player.accel += 0.15
@@ -148,32 +160,121 @@ function gravity()
     if player.accel > player.maxaceel then
       player.accel = player.maxaceel
     end
-  end
+end
 
 function _update60()
-    local move = 0
+    local dx = 0
     gravity()
+	
     if btn(0) then
-        move = -player.speed
+        dx = -player.speed
+		player.flip_sprite_x = true
     end
     if btn(1) then
-        move = player.speed
+        dx = player.speed
+		player.flip_sprite_x = false
     end
-    if player.grounded then
-        if btnp(2) then
-          player.accel = -2
-          player.grounded = false
-        end
-    end
-    player.can_move = not check_move(player.x + player.sx + move, player.y + player.sy, player.w, player.h)
-    if check_end(player.x + player.sx + move, player.y + player.sy, player.w, player.h) then
+	
+	if btn(2) then
+		if player.grounded then
+			player.accel = -1.3
+			player.grounded = false
+			player.jump_hold = 1
+		end
+		if player.jump_hold > 0 and player.jump_hold <= 40 then
+			player.accel += (-0.55 / (player.jump_hold))
+			player.jump_hold += 1
+		end
+	elseif player.jump_hold > 0 then
+		player.jump_hold = 0
+	end
+	
+	local new_pos = {
+		x = player.x + player.sx + dx,
+		y = player.y + player.sy
+	}
+	
+    player.can_move = not check_move(new_pos.x, new_pos.y, player.w, player.h)
+    if check_end(new_pos.x, new_pos.y, player.w, player.h) then
         
     end
-    if player.can_move and player.x + move > camerax then
-        player.x += move
+    if player.can_move and player.x + dx > camerax then
+        player.x += dx
     end
+	
+	if btnp(5) then
+		-- projectiles
+		shoot_projectile(player.x, player.y, player.flip_sprite_x)
+	end
+	
     check_death()
     move_opposition()
+	move_projectiles()
+end
+
+function shoot_projectile(x, y, flp)
+	local p = {
+		spr = 2,
+		x = x,
+		y = y,
+		sx = 0,
+		sy = 1,
+		w = 7,
+		h = 5,
+		flp = flp
+	}
+	add(projectiles, p)
+end
+
+function move_projectiles()
+	for p in all(projectiles) do
+		local dx = (p.flp and -2 or 2)
+		-- check collision with map or outside of map
+		if p.x + p.w < camerax or 
+		   p.x - p.w > 1024 or
+		   check_move(p.x + p.sx + dx, p.y + p.sy, p.w, p.h) then
+			del(projectiles, p)
+		else
+			-- check sprite collision
+			for g in all(bads) do
+				if g.show then
+					local collide = check_sprite_collision(p.x, p.y, p.sx, p.sy, p.w, p.h, g.x, g.y, g.sx, g.sy, g.w, g.h)
+					if collide then
+						del(projectiles, p)
+						-- kill goomba
+						g.show = false
+						return
+					end
+				end
+			end
+			
+			p.x += dx
+		end
+	end
+end
+
+--[[
+	Check if the two sprites are inside one another.
+	x1 - x position of sprite 1
+	y1 - y position of sprite 1
+	sx1 - starting x of sprite 1
+	sy1 - starting y of sprite 1
+	w1 - width of sprite 1, '0' denotes that the width is 1 pixel
+	h1 - height of sprite 1, '0' denotes that the height is 1 pixel
+--]]
+function check_sprite_collision(x1, y1, sx1, sy1, w1, h1, x2, y2, sx2, sy2, w2, h2)
+	local spr1_x = x1 + sx1
+	local spr1_y = y1 + sy1
+	local spr2_x = x2 + sx2
+	local spr2_y = y2 + sy2
+	return abs(spr1_x - spr2_x) * 2 <= w1 + w2 + 1 and
+	       abs(spr1_y - spr2_y) * 2 <= h1 + h2 + 1
+end
+
+function draw_projectiles()
+	for p in all(projectiles) do
+		spr(p.spr, p.x, p.y, 1, 1, p.flp)
+	end
 end
 
 function check_end(x,y,w,h)
@@ -212,7 +313,8 @@ function _draw()
         cls(5)
         map(0,0,0,0,128,16)
         draw_bads()
-        spr(player.sprite, player.x, player.y)
+		draw_projectiles()
+        spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
         print("lives: ",camerax,cameray,7)
         for i=1,lives do
             spr(3, camerax + 18 + (4*i), cameray-1)
@@ -228,12 +330,12 @@ function _draw()
 end
 __gfx__
 00000000007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000007777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000007777000000990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0070070000fff5000999944000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000007775009aaa444f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000770000077750009aa4f4400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700007777000999944000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000007777000000990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 88888a88000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 888859a8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
