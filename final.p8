@@ -27,26 +27,28 @@ flag_max_y = 0
 level_end = false
 
 
-function goomba(x,y,speed,s_num)
-    local g = {}
-    g.x = x*8
-    g.y = y*8
-    g.o_x = x*8
-    g.o_y = y*8
-    g.w = 5
-    g.h = 5
-    g.sx = 1
-    g.sy = 2
-    g.accel = 0
-    g.speed = speed
-    g.s_num = s_num
-    g.show = true
+function new_goomba(x,y,speed,s_num)
+    local g = {
+		x = x*8,
+		y = y*8,
+		o_x = x*8,
+		o_y = y*8,
+		w = 5,
+		h = 5,
+		sx = 1,
+		sy = 2,
+		accel = 0,
+		speed = speed,
+		s_num = s_num,
+		show = true
+	}
     return g
 end
 
 function move_opposition()
     for g in all(bads) do
-        if g.show then
+		local on_screen = g.x >= camerax - 8 and g.x <= camerax + 128
+        if g.show and on_screen then
             local move = g.speed
             if check_move(g.x + g.sx + move, g.y + g.sy, g.w, g.h) then
                 g.speed = -g.speed
@@ -117,7 +119,7 @@ function _init()
         for j=0,16 do
             local sprite = mget(i,j)
             if fget(sprite,7) then
-                add(bads,goomba(i,j,.5,sprite))
+                add(bads,new_goomba(i,j,.5,sprite))
                 mset(i,j,64)
             end
             if fget(sprite, 4) then
