@@ -69,37 +69,15 @@ function move_opposition()
             if g.accel > 1.5 then
             g.accel = 1.5
             end
-
-            check_player_collision(g)
+				
+			-- Check if the player touches a goomba
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, g.x, g.y, g.sx, g.sy, g.w, g.h) then
+				-- The player touched a goomba
+				player.x = 8
+				player.y = 0
+				reset()
+			end
         end
-    end
-end
-
-function check_player_collision(goomba)
-    local p_top = flr(player.y + player.sy)
-    local p_bot = flr(p_top + player.h)
-    local p_left = flr(player.x + player.sx)
-    local p_right = flr(p_left + player.w)
-    local g_top = flr(goomba.y + goomba.sy)
-    local g_bot = flr(g_top + goomba.h)
-    local g_left = flr(goomba.x + goomba.sx)
-    local g_right = flr(g_left + goomba.w)
-    if (p_bot >= g_top and p_bot < g_top + (goomba.h*.2)) and 
-    ((p_left >= g_left and p_left <= g_right) or
-    (p_right >= g_left and p_right <= g_right))
-    and not player.grounded then
-        player.accel = -1
-        goomba.show = false
-        return
-    end
-    if ((p_bot >= g_top and p_bot <= g_bot) or
-    (p_top >= g_top and p_top <= g_bot)) and 
-    ((p_left >= g_left and p_left <= g_right) or
-    (p_right >= g_left and p_right <= g_right)) then
-        lives-=1
-        player.x = 8
-        player.y = 0
-        reset()
     end
 end
 
