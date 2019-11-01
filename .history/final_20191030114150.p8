@@ -39,11 +39,7 @@ end
 
 function update_char_select()
     if btn(0) or btn(1) then 
-        if hard_mode then
-            hard_mode = false
-        else
-            hard_mode = true
-        end
+        hard_mode = ~hard_mode
     end
     if hard_mode then
         player.sprite = 1
@@ -53,8 +49,7 @@ function update_char_select()
 end
 
 function draw_char_select()
-    cls()
-    spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
+
 end
 
 function goomba(x,y,speed,s_num)
@@ -140,8 +135,8 @@ function draw_bads()
 end
 
 function _init()
-    draw_func = draw_char_select
-    update_func = update_char_select
+    draw_func = draw_game
+    update_func = update_game
     music(0)
     lives = 3
     local index = 0

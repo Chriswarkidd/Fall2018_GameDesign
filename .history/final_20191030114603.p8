@@ -53,7 +53,6 @@ function update_char_select()
 end
 
 function draw_char_select()
-    cls()
     spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
 end
 
