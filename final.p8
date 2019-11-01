@@ -57,26 +57,28 @@ function draw_char_select()
     spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
 end
 
-function goomba(x,y,speed,s_num)
-    local g = {}
-    g.x = x*8
-    g.y = y*8
-    g.o_x = x*8
-    g.o_y = y*8
-    g.w = 5
-    g.h = 5
-    g.sx = 1
-    g.sy = 2
-    g.accel = 0
-    g.speed = speed
-    g.s_num = s_num
-    g.show = true
+function new_goomba(x,y,speed,s_num)
+    local g = {
+		x = x*8,
+		y = y*8,
+		o_x = x*8,
+		o_y = y*8,
+		w = 5,
+		h = 5,
+		sx = 1,
+		sy = 2,
+		accel = 0,
+		speed = speed,
+		s_num = s_num,
+		show = true
+	}
     return g
 end
 
 function move_opposition()
     for g in all(bads) do
-        if g.show then
+		local on_screen = g.x >= camerax - 8 and g.x <= camerax + 128
+        if g.show and on_screen then
             local move = g.speed
             if check_move(g.x + g.sx + move, g.y + g.sy, g.w, g.h) then
                 g.speed = -g.speed
@@ -97,37 +99,15 @@ function move_opposition()
             if g.accel > 1.5 then
             g.accel = 1.5
             end
-
-            check_player_collision(g)
+				
+			-- Check if the player touches a goomba
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, g.x, g.y, g.sx, g.sy, g.w, g.h) then
+				-- The player touched a goomba
+				player.x = 8
+				player.y = 0
+				reset()
+			end
         end
-    end
-end
-
-function check_player_collision(goomba)
-    local p_top = flr(player.y + player.sy)
-    local p_bot = flr(p_top + player.h)
-    local p_left = flr(player.x + player.sx)
-    local p_right = flr(p_left + player.w)
-    local g_top = flr(goomba.y + goomba.sy)
-    local g_bot = flr(g_top + goomba.h)
-    local g_left = flr(goomba.x + goomba.sx)
-    local g_right = flr(g_left + goomba.w)
-    if (p_bot >= g_top and p_bot < g_top + (goomba.h*.2)) and 
-    ((p_left >= g_left and p_left <= g_right) or
-    (p_right >= g_left and p_right <= g_right))
-    and not player.grounded then
-        player.accel = -1
-        goomba.show = false
-        return
-    end
-    if ((p_bot >= g_top and p_bot <= g_bot) or
-    (p_top >= g_top and p_top <= g_bot)) and 
-    ((p_left >= g_left and p_left <= g_right) or
-    (p_right >= g_left and p_right <= g_right)) then
-        lives-=1
-        player.x = 8
-        player.y = 0
-        reset()
     end
 end
 
@@ -151,7 +131,7 @@ function _init()
         for j=0,16 do
             local sprite = mget(i,j)
             if fget(sprite,7) then
-                add(bads,goomba(i,j,.5,sprite))
+                add(bads,new_goomba(i,j,.5,sprite))
                 mset(i,j,64)
             end
             if fget(sprite, 4) then
