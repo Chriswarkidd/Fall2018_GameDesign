@@ -73,8 +73,7 @@ end
 
 function draw_char_select()
     cls() 
-    print("select a character with",16,0,7)
-    print("the 'x' key",16,8,7)
+    print("select a character with the 'x' key",10,0,7)
     sspr(0,16, 8, 8, 16, 48, 8*4, 8*4) 
     sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
     sspr(8,16, 8, 8, 80, 48, 8*4, 8*4) 
