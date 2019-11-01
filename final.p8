@@ -80,7 +80,7 @@ function draw_char_select()
     sspr(8,16, 8, 8, 80, 48, 8*4, 8*4) 
 end
 
-function new_goomba(x,y,speed,s_num)
+function flame_bad(x,y,speed,s_num)
     local g = {
 		x = x*8,
 		y = y*8,
@@ -156,7 +156,7 @@ function _init()
         for j=0,16 do
             local sprite = mget(i,j)
             if fget(sprite,7) then
-                add(bads,new_goomba(i,j,.5,sprite))
+                add(bads,flame_bad(i,j,.5,sprite))
                 mset(i,j,64)
             end
             if fget(sprite, 4) then
@@ -169,6 +169,7 @@ end
 
 function reset()
     camerax = -128
+    lives-=1
     for g in all(bads) do
         g.x = g.o_x
         g.y = g.o_y
@@ -326,7 +327,6 @@ end
 
 function check_death()
     if player.y > 120 then
-        lives-=1
         player.x = 8
         player.y = 0
         reset()
