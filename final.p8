@@ -21,6 +21,22 @@ player = {
 	flip_sprite_x = false,
 	jump_hold = 0
 }
+current_floor = 120
+boss = {
+    x = 0,
+    y = 0,
+    w = 0,
+    h = 0,
+    sx = 0,
+    sy = 0,
+    can_move = true,
+	grounded = false,
+	accel = 0,
+	maxaceel = 2.5,
+	speed = 0.70,
+    sprite = 1,
+	flip_sprite_x = false,
+}
 sprite_x = 0
 sprite_y = 0
 hard_mode = false
@@ -326,7 +342,7 @@ function check_end(x,y,w,h)
 end 
 
 function check_death()
-    if player.y > 120 then
+    if player.y > current_floor then
         player.x = 8
         player.y = 0
         reset()
