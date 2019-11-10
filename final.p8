@@ -4,6 +4,7 @@ __lua__
 lives = 0
 camerax = -128
 music_on = false
+--note door flag is 3
 player = {
 	x = 8,
 	y = 0,
@@ -81,7 +82,7 @@ function update_char_select()
     else 
         input_delay -= 1
     end
-    if btnp(5) and input_delay == 0 then
+    if btnp(5) then
         update_func = update_game
         draw_func = draw_game
     end
