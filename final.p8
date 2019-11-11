@@ -44,6 +44,16 @@ sprite_y = 0
 hard_mode = false
 bads = {}
 projectiles = {}
+lava_geysers = {
+	spr_num = 68,
+	w = 7,
+	h = 7,
+	sx = 0,
+	sy = 0,
+	update_cnt = 0,
+	flip = false,
+	sprites = {}
+}
 flag_x = 0
 flag_max_y = 0
 level_end = false
@@ -91,8 +101,10 @@ end
 
 function draw_char_select()
     cls() 
-    print("select a character with",16,0,7)
-    print("the 'x' key",16,8,7)
+	print("use ⬅️ and ➡️ to choose a", 18, 0, 7)
+	print("character", 48, 8, 7)
+    print("confirm your selection",22,16,7)
+    print("using the 'x' key",30,24,7)
     sspr(0,16, 8, 8, 16, 48, 8*4, 8*4) 
     sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
     sspr(8,16, 8, 8, 80, 48, 8*4, 8*4) 
@@ -207,6 +219,10 @@ function _init()
                 flag_x = i*8 + 5
                 flag_max_y = j*8 + 5
             end
+			if sprite == lava_geysers.spr_num then
+				add(lava_geysers.sprites, {x = i*8, y = j*8})
+				mset(i, j, 64)
+			end
         end
     end
 end
@@ -299,6 +315,7 @@ function update_game()
     check_death()
     move_opposition()
 	move_projectiles()
+	update_lava_geysers()
 end
 
 function shoot_projectile(x, y, flp)
@@ -343,6 +360,14 @@ function move_projectiles()
 	end
 end
 
+function update_lava_geysers()
+	lava_geysers.update_cnt += 1
+	if lava_geysers.update_cnt % 15 == 0 then
+		lava_geysers.update_cnt = 0
+		lava_geysers.flip = not lava_geysers.flip
+	end
+end
+
 --[[
 	Check if the two sprites are inside one another.
 	x1 - x position of sprite 1
@@ -372,11 +397,31 @@ function check_end(x,y,w,h)
 end 
 
 function check_death()
+	local dead = false
+
+	-- fell out of map
     if player.y > current_floor then
-        player.x = 8
+        dead = true
+    end
+	
+	-- touched a lava geyser
+	if not dead and hard_mode then
+		local lgs = lava_geysers.sprites
+		local i = 1
+		while i <= #lgs and not dead do
+			local lg = lgs[i]
+			if check_sprite_collision(lg.x, lg.y, lava_geysers.sx, lava_geysers.sy, lava_geysers.w, lava_geysers.h, player.x, player.y, player.sx, player.sy, player.w, player.h) then
+				dead = true
+			end
+			i += 1
+		end
+	end
+	
+	if dead then
+		player.x = 8
         player.y = 0
         reset()
-    end
+	end
 end
 
 function check_move(x,y,w,h,f)
@@ -402,8 +447,11 @@ function draw_game()
         cls(8)
         map(0,0,0,0,128,16)
         draw_bads()
-		      draw_projectiles()
+	    draw_projectiles()
         spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
+		for lg in all(lava_geysers.sprites) do
+			spr(lava_geysers.spr_num, lg.x, lg.y, 1, 1, lava_geysers.flip) 
+		end
         print("lives: ",camerax,cameray,7)
         for i=1,lives do
             spr(3, camerax + 18 + (8*i), cameray-1)
