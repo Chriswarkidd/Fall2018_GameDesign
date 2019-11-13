@@ -96,7 +96,8 @@ function update_char_select()
         input_delay -= 1
     end
     if btnp(5) then
-        update_func = update_game
+		update_func = update_game
+		input_delay = 0
         draw_func = draw_game
     end
 end
@@ -317,11 +318,15 @@ function update_game()
     end
     if player.can_move and player.x + dx > camerax then
         player.x += dx
-    end
-	
-	if btnp(5) then
-		-- projectiles
-		shoot_projectile(player.x, player.y, player.flip_sprite_x)
+	end
+	if input_delay == 0 then
+		if btnp(5) then
+			-- projectiles
+			shoot_projectile(player.x, player.y, player.flip_sprite_x)
+			input_delay = 30
+		end
+	else 
+		input_delay -= 1
 	end
 	
     check_death()
