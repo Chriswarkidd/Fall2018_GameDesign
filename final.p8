@@ -5,6 +5,7 @@ lives = 0
 camerax = -128
 music_on = false
 --note door flag is 3
+current_floor = 1
 player = {
 	start_x = 0,
 	start_y = 8*8,
@@ -25,7 +26,6 @@ player = {
 	jump_hold = 0,
     anim = 0
 }
-current_floor = 120
 boss = {
     x = 0,
     y = 0,
@@ -102,6 +102,7 @@ function update_char_select()
 		input_delay = 0
 		cameray = -20
         draw_func = draw_game
+		set_map()
     end
 end
 
@@ -116,7 +117,7 @@ function draw_char_select()
     sspr(8,16, 8, 8, 80, 48, 8*4, 8*4) 
 end
 
-function flame_bad(x,y,speed,s_num)
+function rock_bad(x,y,speed,s_num)
     local g = {
 		x = x*8,
 		y = y*8,
@@ -129,6 +130,7 @@ function flame_bad(x,y,speed,s_num)
 		accel = 0,
 		speed = -speed,
 		s_num = s_num,
+		flip = false,
 		show = true
 	}
     return g
@@ -161,31 +163,32 @@ function player_animate()
 end
 
 function move_opposition()
-    for g in all(bads) do
-		local on_screen = g.x >= camerax - 8 and g.x <= camerax + 128
-        if g.show and on_screen then
-            local move = g.speed
-            if check_move(g.x + g.sx + move, g.y + g.sy, g.w, g.h) then
-                g.speed = -g.speed
+    for b in all(bads) do
+		local on_screen = b.x >= camerax - 8 and b.x <= camerax + 128
+        if b.show and on_screen then
+            local move = b.speed
+            if check_move(b.x + b.sx + move, b.y + b.sy, b.w, b.h) then
+                b.speed = -b.speed
+				b.flip = not b.flip
             else
-                g.x += move
+                b.x += move
             end
 
-            local accel = g.accel
+            local accel = b.accel
         
-            if not check_move(g.x + g.sx, g.y + g.sy + accel, g.w, g.h) then
-                g.y += accel
+            if not check_move(b.x + b.sx, b.y + b.sy + accel, b.w, b.h) then
+                b.y += accel
             else
-                g.accel = 0
+                b.accel = 0
             end
             
-            g.accel += 0.15
+            b.accel += 0.15
             
-            if g.accel > 1.5 then
-            g.accel = 1.5
+            if b.accel > 1.5 then
+            b.accel = 1.5
             end
 				
-			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, g.x, g.y, g.sx, g.sy, g.w, g.h) then
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, b.x, b.y, b.sx, b.sy, b.w, b.h) then
 				music(-1, 200)
 				sfx(4, 0)
 				reset()
@@ -195,9 +198,9 @@ function move_opposition()
 end
 
 function draw_bads()
-    for g in all(bads) do
-        if g.show then
-            spr(g.s_num, g.x, g.y)
+    for b in all(bads) do
+        if b.show then
+            spr(b.s_num, b.x, b.y+8,1,1, b.flip)
         end
     end
 end
@@ -211,21 +214,22 @@ function _init()
     palt(0, false)
     palt(11, true)
     lives = 3
-    local index = 0
+end
+
+function set_map()
+   	bads = {}
+	lava_geysers.sprites = {}
+   	local index = 0
     for i=0,127 do
         for j=0,16 do
-            local sprite = mget(i,j)
+            local sprite = mget(i,j+current_floor)
             if fget(sprite,7) then
-                add(bads,flame_bad(i,j,.5,sprite))
-                mset(i,j,64)
-            end
-            if fget(sprite, 4) then
-                flag_x = i*8 + 5
-                flag_max_y = j*8 + 5
+                add(bads,rock_bad(i,j,.5,sprite))
+                mset(i,j+current_floor,64)
             end
 			if sprite == lava_geysers.spr_num then
-				add(lava_geysers.sprites, {x = i*8, y = j*8})
-				mset(i, j, 64)
+				add(lava_geysers.sprites, {x = i*8, y = (j)*8})
+				mset(i, j+current_floor, 64)
 			end
         end
     end
@@ -239,6 +243,7 @@ function update_death()
 		player.x = player.start_x
 		player.y = player.start_y
 		camerax = -128
+		reset_bads()
 	end
 end
 
@@ -246,6 +251,9 @@ function reset()
 	death_timer = 30
     lives-=1
 	update_func = update_death
+end
+
+function reset_bads()
     for g in all(bads) do
         g.x = g.o_x
         g.y = g.o_y
@@ -317,12 +325,13 @@ function update_game()
 	
     player.can_move = not check_move(new_pos.x, new_pos.y, player.w, player.h)
     if check_end(new_pos.x, new_pos.y, player.w, player.h) then
-		current_floor = 248
-		player.start_y = 22*8
-		cameray = player.start_y - 92
+		current_floor += 13
+		-- player.start_y = 22*8
+		-- cameray = player.start_y - 72
 		camerax = -128
 		player.x = 0
 		player.y = player.start_y
+		set_map()
     end
     if player.can_move and player.x + dx > camerax then
         player.x += dx
@@ -413,7 +422,7 @@ end
 
 function draw_projectiles()
 	for p in all(projectiles) do
-		spr(p.spr, p.x, p.y, 1, 1, p.flp)
+		spr(p.spr, p.x, p.y+8, 1, 1, p.flp)
 	end
 end
 
@@ -425,7 +434,7 @@ function check_death()
 	local dead = false
 
 	-- fell out of map
-    if player.y > current_floor then
+    if player.y > (128) then
         dead = true
     end
 	
@@ -443,14 +452,13 @@ function check_death()
 	end
 	
 	if dead then
-		player.x = 8
-        player.y = 0
         reset()
 	end
 end
 
 function check_move(x,y,w,h,f)
     f = f or 0
+	y = y
     return check_flag(x+w, y, f) or
             check_flag(x, y+h, f) or
             check_flag(x, y, f) or
@@ -458,7 +466,7 @@ function check_move(x,y,w,h,f)
 end
 
 function check_flag(x, y, f)
-    return fget(mget(x/8,y/8),f)
+    return fget(mget(x/8,(y/8)+current_floor),f)
 end
 function update_game_over()
 --temp blank for the moment 
@@ -472,12 +480,12 @@ function draw_game()
         -- cameray = player.y - 60 
         camera(camerax, cameray)
         cls(8)
-        map(0,0,0,0,128,128)
+        map(0,current_floor,0,8,128,16)
         draw_bads()
 	    draw_projectiles()
-        spr(player.sprite, player.x, player.y, 1, 1, player.flip_sprite_x)
+        spr(player.sprite, player.x, player.y+8, 1, 1, player.flip_sprite_x)
 		for lg in all(lava_geysers.sprites) do
-			spr(lava_geysers.spr_num, lg.x, lg.y, 1, 1, lava_geysers.flip) 
+			spr(lava_geysers.spr_num, lg.x, lg.y+8, 1, 1, lava_geysers.flip) 
 		end
         print("lives: ",camerax,cameray,7)
         for i=1,lives do
