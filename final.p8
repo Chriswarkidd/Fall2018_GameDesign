@@ -6,6 +6,7 @@ camerax = -128
 music_on = false
 --note door flag is 3
 current_floor = 1
+current_level = 1
 player = {
 	start_x = 0,
 	start_y = 8*8,
@@ -73,6 +74,42 @@ function _draw()
     draw_func()
 end
 
+function update_level_screen()
+    if btnp(5) then
+		update_func = update_game
+        draw_func = draw_game
+		current_level += 1
+		current_floor += 13
+		camerax = -128
+		player.x = 0
+		player.y = player.start_y
+		set_map()
+    end
+end
+
+function draw_level_screen()
+    cls(8)
+	camera(0,0)
+	--print("you beat level: "..current_level, 24, 2, 7)
+	print("now entering level: "..current_level+1, 24, 13, 7)
+    print("start the level by",24,24,7)
+    print("using the 'x or v' key",24,36,7)
+    sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
+end
+
+function update_pause_screen()
+    if btnp(4) then
+		update_func = update_game
+        draw_func = draw_game
+    end
+end
+
+function draw_pause_screen()
+	print("paused on level "..current_level, camerax + 18, 16, 7)
+    print("press either the 'c or z'", camerax + 18,27,7)
+    print("key to continue", camerax + 18,39,7)
+end
+
 function update_char_select()
     if input_delay == 0 then
         if btn(0) or btn(1) then 
@@ -107,14 +144,18 @@ function update_char_select()
 end
 
 function draw_char_select()
-    cls() 
+    cls()
 	print("use ⬅️ and ➡️ to choose a", 18, 0, 7)
 	print("character", 48, 8, 7)
     print("confirm your selection",22,16,7)
-    print("using the 'x' key",30,24,7)
+    print("using the 'x or v' key",22,24,7)
     sspr(0,16, 8, 8, 16, 48, 8*4, 8*4) 
     sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
-    sspr(8,16, 8, 8, 80, 48, 8*4, 8*4) 
+    sspr(8,16, 8, 8, 80, 48, 8*4, 8*4)
+	print("shoot with the", 30, 88, 7)
+	print("'x or v' key", 30, 96, 7)
+    print("pause with the", 30,104,7)
+    print("the 'z or c' key", 30,112,7) 
 end
 
 function rock_bad(x,y,speed,s_num)
@@ -254,11 +295,12 @@ function reset()
 end
 
 function reset_bads()
-    for g in all(bads) do
-        g.x = g.o_x
-        g.y = g.o_y
-        g.show = true
-        g.speed = -.5
+    for b in all(bads) do
+        b.x = b.o_x
+        b.y = b.o_y
+        b.show = true
+        b.speed = -.5
+		b.flip = false
     end
 	projectiles = {}
 end
@@ -325,17 +367,18 @@ function update_game()
 	
     player.can_move = not check_move(new_pos.x, new_pos.y, player.w, player.h)
     if check_end(new_pos.x, new_pos.y, player.w, player.h) then
-		current_floor += 13
-		-- player.start_y = 22*8
-		-- cameray = player.start_y - 72
-		camerax = -128
-		player.x = 0
-		player.y = player.start_y
-		set_map()
+        draw_func = draw_level_screen
+		update_func = update_level_screen
     end
     if player.can_move and player.x + dx > camerax then
         player.x += dx
 	end
+
+	if btnp(4) then
+        draw_func = draw_pause_screen
+		update_func = update_pause_screen
+	end
+
 	if input_delay == 0 then
 		if btnp(5) then
 			-- projectiles
@@ -345,6 +388,7 @@ function update_game()
 	else 
 		input_delay -= 1
 	end
+
 	
     check_death()
     move_opposition()
