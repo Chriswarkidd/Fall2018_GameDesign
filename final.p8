@@ -33,6 +33,11 @@ level_end = false
 update_fuc = nil
 draw_func = nil
 input_delay = 0
+power_up_time = 5
+shield_on = false
+speed_on = false
+rapidfire_on = false
+anim_time = 0
 
 function _update60()
     update_func()
@@ -151,7 +156,7 @@ function move_opposition()
             end
 				
 			-- Check if the player touches a lava rock
-			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, g.x, g.y, g.sx, g.sy, g.w, g.h) then
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, g.x, g.y, g.sx, g.sy, g.w, g.h) and not shield_on then
 				-- The player touched a lava rock
 				player.x = 8
 				player.y = 0
@@ -204,6 +209,9 @@ function reset()
         g.speed = -.5
     end
 	projectiles = {}
+    speed_on = false
+    shield_on = false
+    rapidfire_on = false
 end
 
 function gravity()
@@ -271,6 +279,29 @@ function update_game()
     if player.can_move and player.x + dx > camerax then
         player.x += dx
     end
+
+    
+    if(fget(mget(player.x/8, player.y/8), 6)) then
+        anim_time =  time() + power_up_time
+        if(fget(mget(player.x/8, player.y/8), 1)) then    --Sheild
+            powerup_shield(anim_time)
+        elseif(fget(mget(player.x/8, player.y/8), 2)) then -- health
+            powerup_health()
+        elseif(fget(mget(player.x/8, player.y/8), 4)) then -- Speed
+            powerup_speed(anim_time)
+        elseif(fget(mget(player.x/8, player.y/8), 5)) then --Rapid Fire
+            powerup_rapidfire(anim_time)
+        end
+    end
+    if shield_on then
+        powerup_shield(anim_time)
+    end
+    if speed_on then
+        powerup_speed(anim_time)
+    end
+    if rapidfire_on then
+        powerup_rapidfire(anim_time)
+    end    
 	
 	if btnp(5) then
 		-- projectiles
@@ -280,6 +311,42 @@ function update_game()
     check_death()
     move_opposition()
 	move_projectiles()
+end
+--Power-ups
+function powerup_shield(anim_time)
+    if(time() < anim_time) then
+        shield_on = true
+    else
+        shield_on = false
+    end
+
+end
+
+function powerup_health()
+    if lives < 3 then
+        lives += 1
+    end
+end
+
+function powerup_speed(anim_time)
+    if(time() < anim_time) then
+        player.speed = 2
+        speed_on = true
+    else
+        player.speed = .7
+        speed_on = false
+    end
+end
+
+function powerup_rapidfire(anim_time)
+    if(time() < anim_time) then
+        if btn(5) then
+            shoot_projectile(player.x, player.y, player.flip_sprite_x)
+        end
+        rapidfire_on = true
+    else
+        rapidfire_on = false
+    end
 end
 
 function shoot_projectile(x, y, flp)
@@ -312,7 +379,7 @@ function move_projectiles()
 					local collide = check_sprite_collision(p.x, p.y, p.sx, p.sy, p.w, p.h, g.x, g.y, g.sx, g.sy, g.w, g.h)
 					if collide then
 						del(projectiles, p)
-						-- kill goomba
+						-- kill enemy
 						g.show = false
 						return
 					end
