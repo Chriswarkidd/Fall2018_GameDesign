@@ -794,6 +794,7 @@ function draw_game()
         camera(0,0)
         cls()
         print("game ♥ over!!!",35,60,7)
+        print("press enter",40,68,7)
     end
 end
 __gfx__
