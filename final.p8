@@ -460,18 +460,19 @@ function update_game()
 	end
 
       
-    if(check_flag(player.x/8, player.y/8), 6)) then
+    if(check_flag(player.x/8, player.y/8, 6)) then
         anim_time =  time() + power_up_time
-        if(check_flag(player.x/8, player.y/8, 1)) then     --Sheild
+        if(check_flag(player.x/8, player.y/8, 2) and check_flag(player.x/8, player.y/8, 4)) then     --Sheild
             powerup_shield(anim_time)
-        elseif(check_flag(player.x/8, player.y/8, 2)) then -- health
+        elseif(check_flag(player.x/8, player.y/8, 2) and not check_flag(player.x/8, player.y/8, 4)) then -- health
             powerup_health()
-        elseif(check_flag(player.x/8, player.y/8, 4)) then -- Speed
+        elseif(check_flag(player.x/8, player.y/8, 4) and not check_flag(player.x/8, player.y/8, 2)) then -- Speed
             powerup_speed(anim_time)
-        elseif(check_flag(player.x/8, player.y/8, 5)) then -- Rapid Fire
+        elseif(check_flag(player.x/8, player.y/8, 5)) then --Rapid Fire
             powerup_rapidfire(anim_time)
         end
     end
+    
     if shield_on then
         powerup_shield(anim_time)
     end
@@ -520,10 +521,8 @@ end
 function powerup_shield(anim_time)
     if(time() < anim_time) then
         shield_on = true
-        hard_mode = true
     else
         shield_on = false
-        hard_mode = false
     end
 
 end
