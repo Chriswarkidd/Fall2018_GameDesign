@@ -243,7 +243,7 @@ function move_opposition()
             b.accel = 1.5
             end
 				
-			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, b.x, b.y, b.sx, b.sy, b.w, b.h) and not shield_on then
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, b.x, b.y, b.sx, b.sy, b.w, b.h) and shield_on then
 				music(-1, 200)
 				sfx(4)
 				reset()
@@ -402,7 +402,7 @@ function gravity()
 				sfx(6)
 				sfx_delay = true
 			end
-			player.grounded = true
+			player.grounded = true 
 		end
 		player.accel = 0
 		player.jump_hold = 0
@@ -459,16 +459,15 @@ function update_game()
         player.x += dx
 	end
 
-      
-    if(check_flag(player.x/8, player.y/8, 6)) then
+    if(check_flag(player.x, player.y, 6)) then
         anim_time =  time() + power_up_time
-        if(check_flag(player.x/8, player.y/8, 2) and check_flag(player.x/8, player.y/8, 4)) then     --Sheild
+        if(check_flag(player.x, player.y, 2) and check_flag(player.x/8, player.y/8, 4)) then     --Sheild
             powerup_shield(anim_time)
-        elseif(check_flag(player.x/8, player.y/8, 2) and not check_flag(player.x/8, player.y/8, 4)) then -- health
+        elseif(check_flag(player.x, player.y, 2) and not check_flag(player.x/8, player.y/8, 4)) then -- health
             powerup_health()
-        elseif(check_flag(player.x/8, player.y/8, 4) and not check_flag(player.x/8, player.y/8, 2)) then -- Speed
+        elseif(check_flag(player.x, player.y, 4) and not check_flag(player.x/8, player.y/8, 2)) then -- Speed
             powerup_speed(anim_time)
-        elseif(check_flag(player.x/8, player.y/8, 5)) then --Rapid Fire
+        elseif(check_flag(player.x, player.y, 5)) then  --Rapid Fire
             powerup_rapidfire(anim_time)
         end
     end
