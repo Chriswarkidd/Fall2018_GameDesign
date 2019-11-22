@@ -73,7 +73,7 @@ level_end = false
 update_func = nil
 draw_func = nil
 input_delay = 0
-power_up_time = 5
+power_up_time = 3
 shield_on = false
 speed_on = false
 rapidfire_on = false
@@ -327,6 +327,7 @@ function reset()
     shield_on = false
     speed_on = false
     rapidfire_on = false
+    anim_time = 0
 end
 
 function update_boss_animation()
@@ -461,14 +462,18 @@ function update_game()
 
     if(check_flag(player.x, player.y, 6)) then
         anim_time =  time() + power_up_time
-        if(check_flag(player.x, player.y, 2) and check_flag(player.x/8, player.y/8, 4)) then     --Sheild
+        if(check_flag(player.x, player.y, 2) and check_flag(player.x, player.y, 4)) then     -- Shield
             powerup_shield(anim_time)
-        elseif(check_flag(player.x, player.y, 2) and not check_flag(player.x/8, player.y/8, 4)) then -- health
+            mset(player.x/8,player.y/8, 64)
+        elseif(check_flag(player.x, player.y, 2) and not check_flag(player.x, player.y, 4)) then -- health
             powerup_health()
-        elseif(check_flag(player.x, player.y, 4) and not check_flag(player.x/8, player.y/8, 2)) then -- Speed
+            mset(player.x,player.y, 64)
+        elseif(check_flag(player.x, player.y, 4) and not check_flag(player.x, player.y, 2)) then -- Speed
             powerup_speed(anim_time)
+            mset(player.x,player.y, 64)
         elseif(check_flag(player.x, player.y, 5)) then  --Rapid Fire
             powerup_rapidfire(anim_time)
+            mset(player.x,player.y, 64)
         end
     end
     
@@ -544,7 +549,7 @@ end
 
 function powerup_rapidfire(anim_time)
     if(time() < anim_time) then
-        if btn(5) then
+        if btnp(5) then
             shoot_projectile(player.x, player.y, player.flip_sprite_x)
         end
         rapidfire_on = true
@@ -583,7 +588,7 @@ function move_projectiles()
 			for b in all(bads) do
 				if b.show then
 					local collide = check_sprite_collision(p.x, p.y, p.sx, p.sy, p.w, p.h, b.x, b.y, b.sx, b.sy, b.w, b.h)
-					if collide and not shield_on then
+					if collide then
 						del(projectiles, p)
 						-- kill baddie
 						b.show = false
@@ -598,7 +603,7 @@ function move_projectiles()
 				sfx(4)
 				reset()
 			end
-			if boss_aggro and not p.bad and boss.health > 0 and check_sprite_collision(p.x, p.y, p.sx, p.sy, p.w, p.h, boss.x, boss.y, boss.sx, boss.sy, boss.w, boss.h) then
+			if boss_aggro and not p.bad and boss.health > 0 and check_sprite_collision(p.x, p.y, p.sx, p.sy, p.w, p.h, boss.x, boss.y, boss.sx, boss.sy, boss.w, boss.h) and not shield_on then
 				boss.health -= 2.5
 				del(projectiles, p)
 				sfx(10)
