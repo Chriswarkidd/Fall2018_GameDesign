@@ -243,7 +243,7 @@ function move_opposition()
             b.accel = 1.5
             end
 				
-			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, b.x, b.y, b.sx, b.sy, b.w, b.h) and shield_on then
+			if check_sprite_collision(player.x, player.y, player.sx, player.sy, player.w, player.h, b.x, b.y, b.sx, b.sy, b.w, b.h) and not shield_on then
 				music(-1, 200)
 				sfx(4)
 				reset()
