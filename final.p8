@@ -18,9 +18,9 @@ player = {
 	start_y = 8*8,
 	x = 0*8,
 	y = 8*8,
-	w = 3,
+	w = 5,
 	h = 7,
-	sx = 2,
+	sx = 1,
 	sy = 0,
 	can_move = true,
 	grounded = false,
@@ -59,9 +59,9 @@ bads = {}
 projectiles = {}
 lava_geysers = {
 	spr_num = 68,
-	w = 8,
+	w = 7,
 	h = 7,
-	sx = 2,
+	sx = 0,
 	sy = 0,
 	update_cnt = 0,
 	flip = false,
@@ -178,10 +178,10 @@ function rock_bad(x,y,speed,s_num)
 		y = y*8,
 		o_x = x*8,
 		o_y = y*8,
-		w = 5,
-		h = 5,
+		w = 6,
+		h = 7,
 		sx = 1,
-		sy = 2,
+		sy = 0,
 		accel = 0,
 		speed = -speed,
 		s_num = s_num,
@@ -326,6 +326,7 @@ function reset()
 	update_func = update_death
     shield_on = false
     speed_on = false
+	player.speed = 0.7
     rapidfire_on = false
 end
 
@@ -458,19 +459,33 @@ function update_game()
     if player.can_move and player.x + dx > camerax then
         player.x += dx
 	end
-
-      
-    if(check_flag(player.x, player.y, 6)) then
-        anim_time =  time() + power_up_time
-        if(check_flag(player.x, player.y, 2) and check_flag(player.x, player.y, 4)) then     --Sheild
+    
+	local p_box = {
+		x1 = player.x + player.sx,
+		y1 = player.y + player.sy,
+		x2 = player.x + player.sx + player.w,
+		y2 = player.y + player.sy + player.h
+	}
+	
+	local powerup_cell = get_flag_box(p_box, 6)
+    if powerup_cell != null then
+		anim_time = time() + power_up_time
+		local map_x = powerup_cell.x
+		local map_y = powerup_cell.y
+		printh(map_x)
+		printh(map_y)
+		if check_flag_map(map_x, map_y, 2) and check_flag_map(map_x, map_y, 4) then --Sheild
             powerup_shield(anim_time)
-        elseif(check_flag(player.x, player.y, 2) and not check_flag(player.x, player.y, 4)) then -- health
+		elseif check_flag_map(map_x, map_y, 2) and not check_flag_map(map_x, map_y, 4) then -- health
             powerup_health()
-        elseif(check_flag(player.x, player.y, 4) and not check_flag(player.x, player.y, 2)) then -- Speed
+		elseif check_flag_map(map_x, map_y, 4) and not check_flag_map(map_x, map_y, 2) then -- Speed
             powerup_speed(anim_time)
-        elseif(check_flag(player.x, player.y, 5)) then --Rapid Fire
+		elseif check_flag_map(map_x, map_y, 5) then --Rapid Fire
             powerup_rapidfire(anim_time)
         end
+		
+		mset(map_x, map_y + current_floor - 1, 64)
+		--mset(ceil((box.x1+box.x2)/16), ceil((box.y1+box.y2)/16)+1, 64)
     end
     
     if shield_on then
@@ -515,6 +530,15 @@ function update_game()
 		update_boss()
 		boss_ai()
 	end
+end
+
+function get_flag_box(box, flag)
+	if check_flag(box.x1, box.y1, flag) then
+		return {x = flr(box.x1 / 8), y = flr(box.y1 / 8) + 1}
+	elseif check_flag(box.x2, box.y2, flag) then
+		return {x = flr(box.x2 / 8), y = flr(box.y2 / 8) + 1}
+	end
+	return null
 end
 
 --Power-ups
@@ -809,7 +833,9 @@ function check_move(x,y,w,h,f)
             check_flag(x, y, f) or
             check_flag(x+w, y+h, f)
 end
-
+function check_flag_map(x, y, f)
+    return fget(mget(x, y + current_floor - 1),f)
+end
 function check_flag(x, y, f)
     return fget(mget(x/8,(y/8)+current_floor),f)
 end
@@ -998,7 +1024,7 @@ __map__
 4040404040404040234040404040404040404022404040404040404040404040404040404040414040404040404040404048404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404545
 4040414040404040414040404040404040404040404040404040404040414040404040404140404040404040402440404040404040404040404040414040404040414040414040414022404040404041404040404040404040404040404040404140404140404040404040404040404140404040404040404140404040404545
 4040404040404040404040404040404040404041404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040414140404040404546
-4040404041404010404040404040404044404041404044401040404040404040404440401040404044444444404040404040404040404040444040404040444040404040401040404040404044404010404044404040404010404040404040401040404040404440404010404040404040404040404041414140404040404747
+4040404041404010402323404040404044404041404044401040404040404040404440401040404044444444404040404040404040404040444040404040444040404040401040404040404044404010404044404040404010404040404040401040404040404440404010404040404040404040404041414140404040404747
 4242424242424242424242424040424242424242424242424242424040424242424242424243424242424242424242424242404042424243424242424242424242424242434242424242424242424242424242424242424242424240404242424242424242424242424242424242424242424040424342424242424242424242
 4242424242424343424342424040424242424343424243424243424040424342424242434242424242434243424243424242404042424242424242434242424342424242424242424242424342424242424242424342424243424240404243424243424242424243424242424242434243424040424342424342424243424243
 4242424342424242424243424444424243424243424242424342424444424243424342424242424342424242434242424342444442424242424342424242424242434242424342434242424242434242424342424243424242424244444242424242424243424242424242424342424242424444424242424243424242424342
