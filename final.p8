@@ -67,6 +67,15 @@ lava_geysers = {
 	flip = false,
 	sprites = {}
 }
+background_lava = {
+    spr_num = 72,
+    spr_switch = 104,
+    w = 3,
+    h = 1,
+    update_cnt = 0,
+    switch = false,
+    sprites = {}
+}
 flag_x = 0
 flag_max_y = 0
 level_end = false
@@ -274,6 +283,7 @@ end
 function set_map()
    	bads = {}
 	lava_geysers.sprites = {}
+    background_lava.sprites = {}
    	local index = 0
     for i=0,127 do
         for j=0,16 do
@@ -296,6 +306,10 @@ function set_map()
 				add(lava_geysers.sprites, {x = i*8, y = (j)*8})
 				mset(i, j+current_floor, 64)
 			end
+            if sprite == background_lava.spr_num then
+                add(background_lava.sprites, {x = i*8, y = j*8})
+                mset(i, j+current_floor, 64)
+            end
         end
     end
 end
@@ -474,13 +488,13 @@ function update_game()
 		local map_y = powerup_cell.y
 		printh(map_x)
 		printh(map_y)
-		if check_flag_map(map_x, map_y, 2) and check_flag_map(map_x, map_y, 4) then --Sheild
+		if check_flag_map(map_x, map_y, 2) and check_flag_map(map_x, map_y, 4) then --sheild
             powerup_shield(anim_time)
 		elseif check_flag_map(map_x, map_y, 2) and not check_flag_map(map_x, map_y, 4) then -- health
             powerup_health()
-		elseif check_flag_map(map_x, map_y, 4) and not check_flag_map(map_x, map_y, 2) then -- Speed
+		elseif check_flag_map(map_x, map_y, 4) and not check_flag_map(map_x, map_y, 2) then -- speed
             powerup_speed(anim_time)
-		elseif check_flag_map(map_x, map_y, 5) then --Rapid Fire
+		elseif check_flag_map(map_x, map_y, 5) then --rapid fire
             powerup_rapidfire(anim_time)
         end
 		
@@ -526,6 +540,7 @@ function update_game()
     move_opposition()
 	move_projectiles()
 	update_lava_geysers()
+    animate_lava()
 	if current_level == 4 and boss_intro_time == 0 and boss.health > 0 then
 		update_boss()
 		boss_ai()
@@ -541,7 +556,7 @@ function get_flag_box(box, flag)
 	return null
 end
 
---Power-ups
+--power-ups
 function powerup_shield(anim_time)
     if(time() < anim_time) then
         shield_on = true
@@ -642,7 +657,7 @@ function update_lava_geysers()
 end
 
 --[[
-	Check if the two sprites are inside one another.
+	check if the two sprites are inside one another.
 	x1 - x position of sprite 1
 	y1 - y position of sprite 1
 	sx1 - starting x of sprite 1
@@ -843,6 +858,15 @@ function update_game_over()
 --temp blank for the moment 
 	music(-1, 500)
 end
+
+function animate_lava()
+    background_lava.update_cnt += 1
+	if background_lava.update_cnt % 12 == 0 then
+		background_lava.update_cnt = 0
+		background_lava.switch = not background_lava.switch
+	end
+end
+
 function draw_game()
     if lives > 0 and boss.health > 0 then
         if player.x - 60 > camerax then
@@ -861,6 +885,13 @@ function draw_game()
 		for lg in all(lava_geysers.sprites) do
 			spr(lava_geysers.spr_num, lg.x, lg.y+8, 1, 1, lava_geysers.flip) 
 		end
+        for bl in all(background_lava.sprites) do
+            if background_lava.switch then
+                spr(background_lava.spr_switch, bl.x, bl.y+8, background_lava.w, background_lava.h)
+            else
+                spr(background_lava.spr_num, bl.x, bl.y+8, background_lava.w, background_lava.h)
+            end  
+        end
         print("lives: ",camerax,cameray,7)
         for i=1,lives do
             spr(3, camerax + 18 + (8*i), cameray-1)
