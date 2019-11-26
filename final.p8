@@ -932,15 +932,15 @@ function draw_game()
         camera(camerax, cameray)
         cls(8)
         map(0,current_floor,0,8,128,16)
-        draw_bads()
-	    draw_projectiles()
         for bl in all(background_lava.sprites) do
             if background_lava.switch then
                 spr(background_lava.spr_switch, bl.x, bl.y+8, background_lava.w, background_lava.h)
             else
                 spr(background_lava.spr_num, bl.x, bl.y+8, background_lava.w, background_lava.h)
             end  
-        end
+		end
+		draw_bads()
+	    draw_projectiles()
 		if (shield_on) then
 			if (hard_mode) then
 				pal(6,5)
@@ -973,7 +973,8 @@ function draw_game()
         player.y = 0
         camera(0,0)
         cls(0)
-        print("you won!!! :)",35,30,7)
+		print("you won!!! :)",35,30,7)
+		print("your final score was: "..score,15,100,7)
 		sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
     else
 		update_func = update_game_over
@@ -981,7 +982,8 @@ function draw_game()
         player.y = 0
         camera(0,0)
         cls()
-        print("game ♥ over!!!",35,60,7)
+		print("game ♥ over!!!",35,60,7)
+		print("your final score was: "..score,15,80,7)
         print("press enter",40,68,7)
     end
 end
