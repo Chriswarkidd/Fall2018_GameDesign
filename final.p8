@@ -1,6 +1,15 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+--[[
+    PICO-8 FINAL PROJECT BETA VERSION
+    COSC438 - alan jamieson
+    Group:
+        Christopher Brown
+		Patrick Romero
+		Renae Rohde
+        Maddie White
+]]
 lives = 0
 camerax = 0
 music_on = false
