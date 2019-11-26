@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+-- shark girl and lava boy
+-- by Christopher Brown, Patrick Romero, Renae Rohde, Maddie White
 --[[
     PICO-8 FINAL PROJECT BETA VERSION
     COSC438 - alan jamieson
