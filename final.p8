@@ -986,7 +986,7 @@ end
         cls()
 		print("game ♥ over!!!",35,60,7)
 		print("your final score was: "..score,15,80,7)
-        print("press enter",40,68,7)
+        print("press ctr + r",40,68,7)
     end
 end
 __gfx__
