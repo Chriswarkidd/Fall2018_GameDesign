@@ -50,10 +50,10 @@ boss = {
 	start_y = 0,
     x = 0,
     y = 0,
-    w = 12,
-    h = 15,
-    sx = 3,
-    sy = 0,
+    w = 10,
+    h = 13,
+    sx = 5,
+    sy = 2,
     can_move = true,
 	grounded = true,
 	accel = 0,
@@ -311,31 +311,31 @@ function set_map()
 	power_ups = {}
 	lava_geysers.sprites = {}
     background_lava.sprites = {}
-   	local index = 0
+	   local index = 0
     for i=0,127 do
         for j=0,16 do
             local sprite = mget(i,j+current_floor)
             if fget(sprite,7) then
                 add(bads,rock_bad(i,j,.5,sprite))
-                mset(i,j+current_floor,64)
+                mset(i,j+current_floor,0)
             end
 			if fget(sprite, 1) then
 				boss.x = i*8
 				boss.y = j*8
 				boss.start_x = i*8
 				boss.start_y = j*8
-				mset(i,j+current_floor,64)
-				mset(i+1,j+current_floor,64)
-				mset(i,j+current_floor+1,64)
-				mset(i+1,j+current_floor+1,64)
+				mset(i,j+current_floor,0)
+				mset(i+1,j+current_floor,0)
+				mset(i,j+current_floor+1,0)
+				mset(i+1,j+current_floor+1,0)
 			end
 			if sprite == lava_geysers.spr_num then
 				add(lava_geysers.sprites, {x = i*8, y = (j)*8})
-				mset(i, j+current_floor, 64)
+				mset(i, j+current_floor, 0)
 			end
             if sprite == background_lava.spr_num then
                 add(background_lava.sprites, {x = i*8, y = j*8})
-                mset(i, j+current_floor, 64)
+                mset(i, j+current_floor, 0)
             end
 			if sprite == 34 then --sheild
 				add(power_ups, {i,j+current_floor,sprite})
@@ -547,7 +547,7 @@ function update_game()
 			sfx(20)
         end
 		
-		mset(map_x, map_y + current_floor - 1, 64)
+		mset(map_x, map_y + current_floor - 1, 0)
     end
     
     if shield_on then
@@ -930,14 +930,16 @@ function draw_game()
 		end
         -- cameray = player.y - 60 
         camera(camerax, cameray)
-        cls(8)
+		   if current_level == 1 then cls(12)
+		   elseif current_level == 2 then cls(5)
+		   else cls(8) end
         map(0,current_floor,0,8,128,16)
         for bl in all(background_lava.sprites) do
             if background_lava.switch then
                 spr(background_lava.spr_switch, bl.x, bl.y+8, background_lava.w, background_lava.h)
             else
                 spr(background_lava.spr_num, bl.x, bl.y+8, background_lava.w, background_lava.h)
-            end  
+end  
 		end
 		draw_bads()
 	    draw_projectiles()
