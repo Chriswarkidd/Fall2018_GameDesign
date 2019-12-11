@@ -123,10 +123,14 @@ function update_level_screen()
 end
 
 function draw_level_screen()
-    cls(8)
-	camera(0,0)
-	--print("you beat level: "..current_level, 24, 2, 7)
-	print("now entering level: "..current_level+1, 24, 13, 7)
+    if current_level == 1 then
+        cls(5)
+    else
+        cls(8)
+    end
+    camera(0,0)
+    --print("you beat level: "..current_level, 24, 2, 7)
+    print("now entering level: "..current_level+1, 24, 13, 7)
     print("start the level by",24,24,7)
     print("using the 'x or v' key",24,36,7)
     sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
