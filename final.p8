@@ -122,6 +122,30 @@ function update_level_screen()
     end
 end
 
+function draw_powerup_screen()
+	cls()
+	print("power ups", 40, 5, 8)
+	print("each lasts 3 seconds", 20, 14, 8)
+	spr(34, 12, 26)
+	spr(35, 12, 38)
+	spr(36, 12, 50)
+	spr(37, 12, 62)
+	print("invincibility", 32, 26, 12)
+	print("super speed", 32, 38, 14)
+	print("hold 'x' for rapid fire", 32, 50, 9)
+	print("extra life", 32, 62, 10)
+	print("shoot with the 'x' or 'v' key", 8, 90, 7)
+    print("pause with the the 'z or c' key", 4,104,7)
+	print("press x to play!", 25, 120, 7)
+end
+
+function update_powerup_screen()
+	if btnp(5) then
+		update_func = update_game
+        draw_func = draw_game
+    end
+end
+
 function draw_level_screen()
     if current_level == 1 then
         cls(5)
@@ -188,27 +212,23 @@ function update_char_select()
         input_delay -= 1
     end
     if btnp(5) then
-		update_func = update_game
+		update_func = update_powerup_screen
 		input_delay = 0
 		cameray = -20
-        draw_func = draw_game
+        draw_func = draw_powerup_screen
 		set_map()
     end
 end
 
 function draw_char_select()
     cls()
-	print("use ⬅️ and ➡️ to choose a", 18, 0, 7)
-	print("character", 48, 8, 7)
-    print("confirm your selection",22,16,7)
-    print("using the 'x or v' key",22,24,7)
+	print("use ⬅️ and ➡️ to choose a", 18, 20, 7)
+	print("character", 48, 28, 7)
     sspr(0,16, 8, 8, 16, 48, 8*4, 8*4) 
     sspr(sprite_x, sprite_y, 8, 8, 48, 48, 8*4, 8*4, player.flip_sprite_x)
-    sspr(8,16, 8, 8, 80, 48, 8*4, 8*4)
-	print("shoot with the", 30, 88, 7)
-	print("'x or v' key", 30, 96, 7)
-    print("pause with the", 30,104,7)
-    print("the 'z or c' key", 30,112,7) 
+    sspr(8,16, 8, 8, 80, 48, 8*4, 8*4)	
+	print("confirm your selection",20, 98, 7)
+    print("using the 'x or v' key",20,110,7)
 end
 
 function rock_bad(x,y,speed,s_num)
